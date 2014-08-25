@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:crawler.properties"></property>
+	</bean>
+	<bean id="taskCenter" class="com.hg.crawler.levels.TaskCenter">
+		<property name="threadSize" value="1" />
+		<property name="useNewFile" value="true" />
+		<property name="testing" value="true"></property>
+		<property name="imgFolder" value="${work.folder}/51bi_merchant/img/"></property>
+		<property name="taskList">
+			<list>
+				<!-- <ref bean="level_1" /> -->
+				<ref bean="level_2" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="level_1" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/51bi_merchant/level_0.txt" />
+		<property name="outputFilePath" value="${work.folder}/51bi_merchant/level_1.txt" />
+		<property name="columnTitle" value="ProductUrl" />
+		<property name="newClumnNames" value="Merchant\tMerchantImgURL\tMerchantImgLocal\tMerchantURL" />
+		<property name="pageEncoding" value="UTF-8" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcherCommon">
+				<property name="htmlPersistence" value="true" />
+				<property name="parentXpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//ul[@class="prodList"]]]></value>
+						</property>
+					</bean>
+				</property>
+				<property name="childXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="necessary" value="true"></property>
+							<property name="xpathString">
+								<value><![CDATA[li[@class="one"]/a/img/@alt]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[li[@class="one"]/a/img/@src]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementImg"></bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[li[@class="one"]/a/@href]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementLink"></bean>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+	<bean id="level_2" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/51bi_merchant/level_1.txt" />
+		<property name="outputFilePath" value="${work.folder}/51bi_merchant/level_2.txt" />
+		<property name="columnTitle" value="MerchantURL" />
+		<property name="newClumnNames" value="MerchantDescription" />
+		<property name="pageEncoding" value="UTF-8" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcherCommon">
+				<property name="htmlPersistence" value="true" />
+				<property name="singleXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[//div[@class="sp_content2"]]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regex">
+											<value><![CDATA[</div>]]></value>
+										</property>
+										<property name="replacement" value="##br####br##"></property>
+									</bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regex">
+											<value><![CDATA[<br/>]]></value>
+										</property>
+										<property name="replacement" value="##br##"></property>
+									</bean>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regex">
+											<value><![CDATA[(##br##)+$]]></value>
+										</property>
+										<property name="replacement" value=""></property>
+									</bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[//h1/a/@href]]></value>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[//*[@class="b_a_left"]/ul/li/a/@href]]></value>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+</beans>
+
+
+
+
+
+
+

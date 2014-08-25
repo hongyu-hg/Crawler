@@ -1,0 +1,24 @@
+
+<data start='2012-10-16' end='2013-01-23' max='201.0' min='128.0' width='766' height='400'
+	chartWidth='450' chartHeight='315' chartPadding='5,10' chartMargin='40,50,40,40' chartBGColor='fafafa'
+	labelLeft='10' labelTop='10'>
+	<store name='家居就' lineColor='f1470b' max='201.0' min='128.0' start='2012-10-16' end='2013-01-23'
+		checked='checked'>
+		<p key='2012-10-16' value='128.0' />
+		<p key='2013-01-05' value='201.0' />
+		<p key='2013-01-10' value='128.0' />
+		<p key='2013-01-23' value='128.0' />
+	</store>
+</data>
+
+<data start='2012-09-02' end='2013-01-23' max='201.0' min='128.0' width='766' height='400'
+	chartWidth='450' chartHeight='315' chartPadding='5,10' chartMargin='40,50,40,40' chartBGColor='fafafa'
+	labelLeft='10' labelTop='10'>
+	<store name='家居就' lineColor='f1470b' max='201.0' min='128.0' start='2012-09-02' end='2013-01-23'
+		checked='checked'>
+		<p key='2012-09-02' value='128.0' />
+		<p key='2013-01-01' value='201.0' />
+		<p key='2013-01-10' value='128.0' />
+		<p key='2013-01-23' value='128.0' />
+	</store>
+</data>

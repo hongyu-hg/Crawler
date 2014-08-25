@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:crawler.properties"></property>
+	</bean>
+	<bean id="taskCenter" class="com.hg.crawler.levels.TaskCenter">
+		<property name="threadSize" value="3" />
+		<property name="useNewFile" value="true" />
+		<property name="testing" value="false"></property>
+		<property name="testingSize" value="1" />
+		<property name="taskList">
+			<list>
+				<ref bean="level_1" />
+				<ref bean="level_2" />
+				<ref bean="level_3" />
+				<ref bean="level_4" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="level_1" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder.adeaz}/ehow/level_0.txt" />
+		<property name="outputFilePath" value="${work.folder.adeaz}/ehow/level_1.txt" />
+		<property name="columnTitle" value="SiteMapLink" />
+		<property name="newClumnNames" value="Level1CategoryName\tLevel1CategoryLink" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcher">
+				<property name="parentXpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//div[@class="links"]//a]]></value>
+						</property>
+					</bean>
+				</property>
+				<property name="childXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[text()]]></value>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[@href]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementLink"></bean>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="level_2" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder.adeaz}/ehow/level_1.txt" />
+		<property name="outputFilePath" value="${work.folder.adeaz}/ehow/level_2.txt" />
+		<property name="columnTitle" value="Level1CategoryLink" />
+		<property name="newClumnNames" value="Level2CategoryName\tLevel2CategoryLink" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcher">
+				<property name="parentXpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//div[@class="links"]//a]]></value>
+						</property>
+					</bean>
+				</property>
+				<property name="childXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[text()]]></value>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[@href]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementLink"></bean>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+
+	<bean id="level_3" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder.adeaz}/ehow/level_2.txt" />
+		<property name="outputFilePath" value="${work.folder.adeaz}/ehow/level_3.txt" />
+		<property name="columnTitle" value="Level2CategoryLink" />
+		<property name="newClumnNames" value="Level3CategoryName\tLevel3CategoryLink" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcher">
+				<property name="parentXpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//div[@class="links"]//a]]></value>
+						</property>
+					</bean>
+				</property>
+				<property name="childXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[text()]]></value>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[@href]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementLink"></bean>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="level_4" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder.adeaz}/ehow/level_3.txt" />
+		<property name="outputFilePath" value="${work.folder.adeaz}/ehow/level_4.txt" />
+		<property name="columnTitle" value="Level3CategoryLink" />
+		<property name="newClumnNames" value="ArticleName\tArticleLink" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcher">
+				<property name="parentXpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//div[@class="links"]//a]]></value>
+						</property>
+					</bean>
+				</property>
+				<property name="childXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[text()]]></value>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[@href]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementLink"></bean>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<!-- <bean id="level_4" class="com.hg.crawler.levels.TaskPoolImpl"> -->
+	<!-- <property name="inputFilePath" value="${work.folder.adeaz}/ehow/level_2.txt" 
+		/> -->
+	<!-- <property name="outputFilePath" value="${work.folder.adeaz}/ehow/level_3.txt" 
+		/> -->
+	<!-- <property name="columnTitle" value="ArticleLink" /> -->
+	<!-- <property name="newClumnNames" value="ArtcleContent" /> -->
+	<!-- <property name="task"> -->
+	<!-- <bean class="com.hg.crawler.PageFetcherForDom"> -->
+	<!-- <property name="htmlPersistence" value="true" /> -->
+	<!-- <property name="xpath"> -->
+	<!-- <bean class="com.hg.crawler.xpath.Xpath"> -->
+	<!-- <property name="xpathString"> -->
+	<!-- <value><![CDATA[//*[@id="content"]]]></value> -->
+	<!-- </property> -->
+	<!-- <property name="postProcessing"> -->
+	<!-- <list> -->
+	<!-- <bean class="com.hg.crawler.xpath.ElementText"></bean> -->
+	<!-- </list> -->
+	<!-- </property> -->
+	<!-- </bean> -->
+	<!-- </property> -->
+	<!-- </bean> -->
+	<!-- </property> -->
+	<!-- </bean> -->
+
+	<!-- <bean id="level_3" class="com.hg.crawler.levels.TaskPoolImpl"> -->
+	<!-- <property name="inputFilePath" value="${work.folder.adeaz}/360buy/level_2.txt" 
+		/> -->
+	<!-- <property name="outputFilePath" value="${work.folder.adeaz}/360buy/level_3.txt" 
+		/> -->
+	<!-- <property name="columnTitle" value="CategoryLink" /> -->
+	<!-- <property name="newClumnNames" value="ProductUrl\tProductPrice" /> -->
+	<!-- <property name="pageEncoding" value="GBK" /> -->
+	<!-- <property name="task"> -->
+	<!-- <bean class="com.hg.crawler.PageFetcherCommon"> -->
+	<!-- <property name="parentXpath"> -->
+	<!-- <bean class="com.hg.crawler.xpath.Xpath"> -->
+	<!-- <property name="xpathString"> -->
+	<!-- <value><![CDATA[//*[@id="plist"]/ul/li/div[@class="p-img"]/a]]></value> -->
+	<!-- </property> -->
+	<!-- </bean> -->
+	<!-- </property> -->
+	<!-- <property name="childXpathList"> -->
+	<!-- <list> -->
+	<!-- <bean class="com.hg.crawler.xpath.Xpath"> -->
+	<!-- <property name="xpathString"> -->
+	<!-- <value><![CDATA[@href]]></value> -->
+	<!-- </property> -->
+	<!-- <property name="postProcessing"> -->
+	<!-- <list> -->
+	<!-- <bean class="com.hg.crawler.xpath.ElementLink"></bean> -->
+	<!-- </list> -->
+	<!-- </property> -->
+	<!-- </bean> -->
+	<!-- <bean class="com.hg.crawler.xpath.Xpath"> -->
+	<!-- <property name="xpathString"> -->
+	<!-- <value><![CDATA[@href]]></value> -->
+	<!-- </property> -->
+	<!-- <property name="postProcessing"> -->
+	<!-- <list> -->
+	<!-- <bean class="com.hg.crawler.xpath.ElementLink"></bean> -->
+	<!-- <bean class="com.hg.crawler.xpath.ElementExtract"> -->
+	<!-- <property name="regExp"> -->
+	<!-- <value><![CDATA[([0-9\.]+)\.html]]></value> -->
+	<!-- </property> -->
+	<!-- <property name="defaultValue" value="0"></property> -->
+	<!-- </bean> -->
+	<!-- <bean class="com.hg.crawler.xpath.ElementReplace"> -->
+	<!-- <property name="regExp"> -->
+	<!-- <value><![CDATA[^]]></value> -->
+	<!-- </property> -->
+	<!-- <property name="replacement" value="http://jprice.360buy.com/price/np"></property> -->
+	<!-- </bean> -->
+	<!-- <bean class="com.hg.crawler.xpath.ElementReplace"> -->
+	<!-- <property name="regExp"> -->
+	<!-- <value><![CDATA[$]]></value> -->
+	<!-- </property> -->
+	<!-- <property name="replacement" value="-TRANSACTION-J.html"></property> -->
+	<!-- </bean> -->
+	<!-- </list> -->
+	<!-- </property> -->
+	<!-- </bean> -->
+	<!-- </list> -->
+	<!-- </property> -->
+	<!-- </bean> -->
+	<!-- </property> -->
+	<!-- </bean> -->
+
+	<!-- <bean id="level_4" class="com.hg.crawler.levels.TaskPoolImpl"> -->
+	<!-- <property name="inputFilePath" -->
+	<!-- value="${work.folder.adeaz}/360buy/360_price_check.txt" /> -->
+	<!-- <property name="outputFilePath" -->
+	<!-- value="${work.folder.adeaz}/360buy/360_checked_price.txt" /> -->
+	<!-- <property name="columnTitle" value="OfferPriceLink" /> -->
+	<!-- <property name="newClumnNames" value="OfferPrice" /> -->
+	<!-- <property name="pageEncoding" value="GBK" /> -->
+	<!-- <property name="task"> -->
+	<!-- <bean class="com.hg.crawler.PageFetcherFor360Price"></bean> -->
+	<!-- </property> -->
+	<!-- </bean> -->
+
+	<bean id="generatePriceUrl" class="com.hg.crawler.file.FileProcessImpl">
+		<property name="inputFilePath" value="${work.folder.adeaz}/360buy/360_price.txt" />
+		<property name="outputFilePath"
+			value="${work.folder.adeaz}/360buy/360_price_check.txt" />
+		<property name="columnTitle" value="OfferLink" />
+		<property name="newClumnNames" value="OfferPriceLink" />
+		<property name="textProcessList">
+			<list>
+				<bean class="com.hg.crawler.xpath.ElementExtract">
+					<property name="regExp">
+						<value><![CDATA[([0-9\.]+)\.html]]></value>
+					</property>
+					<property name="defaultValue" value="0"></property>
+				</bean>
+				<bean class="com.hg.crawler.xpath.ElementReplace">
+					<property name="regExp">
+						<value><![CDATA[^]]></value>
+					</property>
+					<property name="replacement" value="http://jprice.360buy.com/price/np"></property>
+				</bean>
+				<bean class="com.hg.crawler.xpath.ElementReplace">
+					<property name="regExp">
+						<value><![CDATA[$]]></value>
+					</property>
+					<property name="replacement" value="-TRANSACTION-J.html"></property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+</beans>
+
+
+
+
+
+
+

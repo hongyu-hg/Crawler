@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:crawler.properties"></property>
+	</bean>
+	<bean id="taskCenter" class="com.hg.crawler.levels.TaskCenter">
+		<property name="threadSize" value="10" />
+		<property name="useNewFile" value="true" />
+		<property name="testing" value="false"></property>
+		<property name="imgFolder" value="${work.folder}/sasa/img/"></property>
+		<property name="taskList">
+			<list>
+				<ref bean="level_1" />
+				<ref bean="level_2" />
+				<ref bean="level_3" />
+				<ref bean="level_4" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="level_1" class="com.hg.crawler.levels.LinkFetcherPool">
+		<property name="inputFilePath" value="${work.folder}/sasa/level_0.txt" />
+		<property name="outputFilePath" value="${work.folder}/sasa/level_1.txt" />
+		<property name="columnTitle" value="BrandIndexPage" />
+		<property name="newClumnNames" value="BrandName\tBrandLink" />
+		<property name="matchREGEXP">
+			<value><![CDATA[^.*$]]></value>
+		</property>
+		<property name="xpath">
+			<bean class="com.hg.crawler.xpath.Xpath">
+				<property name="xpathString">
+					<value><![CDATA[//table[@width="895"]//a]]></value>
+				</property>
+				<property name="postProcessing">
+					<list>
+						<bean class="com.hg.crawler.xpath.ElementReplace">
+							<property name="regex">
+								<value><![CDATA[$]]></value>
+							</property>
+							<property name="replacement">
+								<value><![CDATA[&type=1]]></value>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="level_2" class="com.hg.crawler.levels.PaginationPool">
+		<property name="inputFilePath" value="${work.folder}/sasa/level_1.txt" />
+		<property name="outputFilePath" value="${work.folder}/sasa/level_2.txt" />
+		<property name="columnTitle" value="BrandLink" />
+		<property name="newClumnNames" value="BrandLinkPagination" />
+		<property name="xpath">
+			<bean class="com.hg.crawler.xpath.Xpath">
+				<property name="xpathString">
+					<value><![CDATA[//td[@class="txt_10px_n_999999" and @align="right"][1]//a]]></value>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="level_3" class="com.hg.crawler.levels.CommonFetcherPool">
+		<property name="inputFilePath" value="${work.folder}/sasa/level_2.txt" />
+		<property name="outputFilePath" value="${work.folder}/sasa/level_3.txt" />
+		<property name="columnTitle" value="BrandLinkPagination" />
+		<property name="newClumnNames" value="ProductPrice\tProductUrl" />
+		<property name="pageEncoding" value="utf-8" />
+		<property name="parentXpath">
+			<bean class="com.hg.crawler.xpath.Xpath">
+				<property name="xpathString">
+					<value><![CDATA[//table[@width="660" and @align="center"]]]></value>
+				</property>
+			</bean>
+		</property>
+		<property name="childXpathList">
+			<list>
+				<bean class="com.hg.crawler.xpath.Xpath">
+					<property name="xpathString">
+						<value><![CDATA[tbody/tr/td[2]/table/tbody/tr[2]/td[2]/table/tbody/tr[1]/td[2]]]></value>
+					</property>
+					<property name="postProcessing">
+						<list>
+							<bean class="com.hg.crawler.xpath.ElementText"></bean>
+							<bean class="com.hg.crawler.xpath.ElementFloat">
+								<property name="rate">
+									<value><![CDATA[6.3906]]></value>
+								</property>
+							</bean>
+						</list>
+					</property>
+				</bean>
+				<bean class="com.hg.crawler.xpath.Xpath">
+					<property name="xpathString">
+						<value><![CDATA[tbody/tr/td/a/@href]]></value>
+					</property>
+					<property name="postProcessing">
+						<list>
+							<bean class="com.hg.crawler.xpath.ElementLink"></bean>
+						</list>
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="level_4" class="com.hg.crawler.levels.CommonFetcherPool">
+		<property name="inputFilePath" value="${work.folder}/sasa/level_3.txt" />
+		<property name="outputFilePath" value="${work.folder}/sasa/level_4.txt" />
+		<property name="columnTitle" value="ProductUrl" />
+		<property name="newClumnNames" value="Label\tImgLink\tImgPath\tProductDetail\tTitle" />
+		<property name="pageEncoding" value="utf-8" />
+		<property name="singleXpathList">
+			<list>
+				<bean class="com.hg.crawler.xpath.Xpath">
+					<property name="necessary" value="true"></property>
+					<property name="xpathString">
+						<value><![CDATA[/html/body/table/tbody/tr[6]/td[2]/table/tbody/tr/td[2]/table/tbody/tr/td[3]/table/tbody/tr/td[2]/table/tbody/tr/td/table[3]/tbody/tr/td[2]]]></value>
+					</property>
+					<property name="postProcessing">
+						<list>
+							<bean class="com.hg.crawler.xpath.ElementText"></bean>
+						</list>
+					</property>
+				</bean>
+				<bean class="com.hg.crawler.xpath.Xpath">
+					<property name="xpathString">
+						<value><![CDATA[//img[@width="300" and @height="332"]/@src]]></value>
+					</property>
+					<property name="postProcessing">
+						<list>
+							<bean class="com.hg.crawler.xpath.ElementImg"></bean>
+						</list>
+					</property>
+				</bean>
+				<bean class="com.hg.crawler.xpath.Xpath">
+					<property name="xpathString">
+						<value><![CDATA[//font[@class="txt_12px_b_EB6495"]/..]]></value>
+					</property>
+					<property name="postProcessing">
+						<list>
+							<bean class="com.hg.crawler.xpath.ElementReplace">
+								<property name="regex">
+									<value><![CDATA[<br\s*/>|<br>]]></value>
+								</property>
+								<property name="replacement" value="##BR##"></property>
+							</bean>
+							<bean class="com.hg.crawler.xpath.ElementText"></bean>
+							<bean class="com.hg.crawler.xpath.ElementReplace">
+								<property name="regex">
+									<value><![CDATA[(##BR##)+]]></value>
+								</property>
+								<property name="replacement" value="##BR##"></property>
+							</bean>
+							<bean class="com.hg.crawler.xpath.ElementReplace">
+								<property name="regex">
+									<value><![CDATA[##BR##$]]></value>
+								</property>
+								<property name="replacement" value=""></property>
+							</bean>
+						</list>
+					</property>
+				</bean>
+				<bean class="com.hg.crawler.xpath.Xpath">
+					<property name="necessary" value="true"></property>
+					<property name="xpathString">
+						<value><![CDATA[//title]]></value>
+					</property>
+					<property name="postProcessing">
+						<list>
+							<bean class="com.hg.crawler.xpath.ElementText"></bean>
+							<bean class="com.hg.crawler.xpath.ElementReplace">
+								<property name="regex">
+									<value><![CDATA[- 香港莎莎化妆品官方网站]]></value>
+								</property>
+								<property name="replacement" value="" />
+							</bean>
+						</list>
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+</beans>
+
+
+
+
+
+
+

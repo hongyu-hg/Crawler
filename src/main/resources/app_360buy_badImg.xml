@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:crawler.properties"></property>
+	</bean>
+	<bean id="taskCenter" class="com.hg.crawler.levels.TaskCenter">
+		<property name="threadSize" value="3" />
+		<property name="testing" value="false"></property>
+		<property name="imgFolder" value="${work.folder}/360buy/imgBad1/"></property>
+		<property name="taskList">
+			<list>
+				<ref bean="level_4" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="level_4" class="com.hg.crawler.levels.CommonFetcherPool">
+		<property name="inputFilePath" value="${work.folder}/360buy/no_img.txt" />
+		<property name="outputFilePath" value="${work.folder}/360buy/no_img_re.txt" />
+		<property name="columnTitle" value="ProductUrl" />
+		<property name="newClumnNames" value="ImgLink\tImgPath" />
+		<property name="pageEncoding" value="GBK" />
+		<property name="singleXpathList">
+			<list>
+				<bean class="com.hg.crawler.xpath.Xpath">
+					<property name="xpathString">
+						<value><![CDATA[//div[@id="spec-n1"]/img/@src]]></value>
+					</property>
+					<property name="postProcessing">
+						<list>
+							<bean class="com.hg.crawler.xpath.ElementImg">
+								<property name="imgNameColumn" value="0"></property>
+							</bean>
+						</list>
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+</beans>
+
+
+
+
+
+
+

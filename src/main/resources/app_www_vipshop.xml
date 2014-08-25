@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:crawler.properties"></property>
+	</bean>
+	<bean id="taskCenter" class="com.hg.crawler.levels.TaskCenter">
+		<property name="threadSize" value="50" />
+		<property name="testing" value="false"></property>
+		<property name="useNewFile" value="true" />
+		<property name="testingSize" value="100"></property>
+		<property name="imgFolder" value="${work.folder}/vipshop/img/"></property>
+		<property name="taskList">
+			<list>
+				<!-- <ref bean="level_1" /> -->
+				<!-- <ref bean="level_2" /> -->
+				<!-- <ref bean="level_3" /> -->
+				<ref bean="priceCheck" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="level_1" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/vipshop/level_0.txt" />
+		<property name="outputFilePath" value="${work.folder}/vipshop/level_1.txt" />
+		<property name="columnTitle" value="CategoryIndexPage" />
+		<property name="newClumnNames" value="CategoryName\tCategoryFirstPageLink" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcherForTitleAndUrl">
+				<property name="regExp">
+					<value><![CDATA[^.*/SubCategory/.*$]]></value>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="level_2" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/vipshop/level_1.txt" />
+		<property name="outputFilePath" value="${work.folder}/vipshop/level_2.txt" />
+		<property name="columnTitle" value="CategoryFirstPageLink" />
+		<property name="newClumnNames" value="CategoryLink" />
+		<property name="task">
+			<bean class="com.hg.crawler.PaginationForStaticUrl">
+				<property name="xpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//*[@class="pageNav"]//a]]></value>
+						</property>
+					</bean>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="level_3" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/vipshop/level_2.txt" />
+		<property name="outputFilePath" value="${work.folder}/vipshop/level_3.txt" />
+		<property name="columnTitle" value="CategoryLink" />
+		<property name="newClumnNames" value="ProductPrice\tProductUrl\tSmallImgLink" />
+		<property name="pageEncoding" value="GBK" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcherCommon">
+				<property name="parentXpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//*[@id="itemGrid1"]/div]]></value>
+						</property>
+					</bean>
+				</property>
+				<property name="childXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[dl/dd[@class="price"]]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regex">
+											<value><![CDATA[￥[0-9\.]+￥]]></value>
+										</property>
+										<property name="replacement" value="" />
+									</bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[dl/dd/div/p/a/@href]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementLink"></bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[dl/dt/a/img/@src]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementLink"></bean>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="level_4" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/vipshop/level_3.txt" />
+		<property name="outputFilePath" value="${work.folder}/vipshop/level_4.txt" />
+		<property name="columnTitle" value="ProductUrl" />
+		<property name="newClumnNames" value="CategoryPath\tBigImgLink\tProductDetail\tTitle" />
+		<property name="pageEncoding" value="GBK" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcherCommon">
+				<property name="singleXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[//*[@id="crumb"]]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[//a[@id="bigImg"]/@href]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementLink"></bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[//*[@id="tabCot_product_2"]]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementTable"></bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[//h1]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="priceCheck" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/huihui/splitByHost/www.vipshop.com.txt" />
+		<property name="outputFilePath" value="${work.folder}/vipshop/price_checked.txt" />
+		<property name="columnTitle" value="OfferLink" />
+		<property name="newClumnNames" value="ProductPrice\tSellOut" />
+		<property name="pageEncoding" value="UTF-8" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcherCommon">
+				<!-- <property name="htmlPersistence" value="true"></property> -->
+				<property name="singleXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[//*[@class="hyjia"]]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regex">
+											<value><![CDATA[￥]]></value>
+										</property>
+										<property name="replacement" value="" />
+									</bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[/]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementMatch">
+										<property name="regExp">
+											<value><![CDATA[该商品已售完]]></value>
+										</property>
+									</bean>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+</beans>

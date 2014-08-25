@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:crawler.properties"></property>
+	</bean>
+	<bean id="taskCenter" class="com.hg.crawler.levels.TaskCenter">
+		<property name="threadSize" value="1" />
+		<property name="useNewFile" value="true" />
+		<property name="testing" value="true"></property>
+		<property name="imgFolder" value="${work.folder}/51bi/img/"></property>
+		<property name="taskList">
+			<list>
+				<!-- <ref bean="level_1" /> -->
+				<!-- <ref bean="level_2" /> -->
+				<!-- <ref bean="level_3" /> -->
+				<ref bean="level_4" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="level_1" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/51bi/level_0.txt" />
+		<property name="outputFilePath" value="${work.folder}/51bi/level_1.txt" />
+		<property name="columnTitle" value="CategoryIndexPage" />
+		<property name="newClumnNames" value="CategoryName\tCategoryFirstPageLink" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcherForTitleAndUrl">
+				<property name="xpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//li[@class="blockWd"]/a]]></value>
+						</property>
+					</bean>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="level_2" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/51bi/level_1.txt" />
+		<property name="outputFilePath" value="${work.folder}/51bi/level_2.txt" />
+		<property name="columnTitle" value="CategoryFirstPageLink" />
+		<property name="newClumnNames" value="CategoryLink" />
+		<property name="task">
+			<bean class="com.hg.crawler.PaginationForStaticUrl">
+				<property name="xpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//*[@class="flickr"]/a]]></value>
+						</property>
+						<property name="postProcessing">
+							<list>
+								<bean class="com.hg.crawler.xpath.ElementReplace">
+									<property name="regex">
+										<value><![CDATA[_rows_]]></value>
+									</property>
+									<property name="replacement" value="_way_list_rows_"></property>
+								</bean>
+							</list>
+						</property>
+					</bean>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="level_3" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/51bi/level_2.txt" />
+		<property name="outputFilePath" value="${work.folder}/51bi/level_3.txt" />
+		<property name="columnTitle" value="CategoryLink" />
+		<property name="newClumnNames" value="Brand\tProductUrl" />
+		<property name="pageEncoding" value="UTF-8" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcherCommon">
+				<property name="parentXpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//div[@class="showbox borderBottom"]]]></value>
+						</property>
+					</bean>
+				</property>
+				<property name="childXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[div[@class="col03"]/p/a[2]]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[div[@class="col02"]/a/@href]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementLink"></bean>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="level_4" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/51bi/level_3.txt" />
+		<property name="outputFilePath" value="${work.folder}/51bi/level_4.txt" />
+		<property name="columnTitle" value="ProductUrl" />
+		<property name="newClumnNames"
+			value="CategoryPath\tImgLink\tImgPath\tProductDetail\tTitle\tMerchantName\tMerchantTitle\tMerchantPrice\tMerchantLink" />
+		<property name="pageEncoding" value="UTF-8" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcherCommon">
+				<property name="htmlPersistence" value="true" />
+				<property name="singleXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[//*[@id="breadcrumbs_bg"]]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regex">
+											<value><![CDATA[当前位置：]]></value>
+										</property>
+										<property name="replacement" value=""></property>
+									</bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regex">
+											<value><![CDATA[&gt;]]></value>
+										</property>
+										<property name="replacement" value="#_#"></property>
+									</bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[//*[@id="psmallpic"]/@src]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementImg"></bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[//*[@class="param_field"]]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementTable"></bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[//h1]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementText" />
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+				<property name="parentXpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//ul[@class="prodList"]]]></value>
+						</property>
+					</bean>
+				</property>
+				<property name="childXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="necessary" value="true"></property>
+							<property name="xpathString">
+								<value><![CDATA[li[@class="one"]/a/img/@alt]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[li[@class="two"]/p]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[li[@class="three"]/p]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[li[@class="five"]/p/a/@href]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+</beans>
+
+
+
+
+
+
+

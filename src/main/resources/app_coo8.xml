@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:crawler.properties"></property>
+	</bean>
+	<bean id="taskCenter" class="com.hg.crawler.levels.TaskCenter">
+		<property name="threadSize" value="1" />
+		<property name="useNewFile" value="true" />
+		<property name="testing" value="true"></property>
+		<property name="testingSize" value="1"></property>
+		<property name="imgFolder" value="${work.folder}/yihaodian/img/"></property>
+		<property name="taskList">
+			<list>
+				<ref bean="level_1" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="level_3" class="com.hg.crawler.levels.CommonFetcherPool">
+		<property name="inputFilePath" value="${work.folder}/yihaodian/level_2.txt" />
+		<property name="outputFilePath" value="${work.folder}/yihaodian/level_3.txt" />
+		<property name="columnTitle" value="CategoryLink" />
+		<property name="newClumnNames" value="ProductPrice\tProductUrl" />
+		<property name="pageEncoding" value="utf-8" />
+		<property name="parentXpath">
+			<bean class="com.hg.crawler.xpath.Xpath">
+				<property name="xpathString">
+					<value><![CDATA[//div[@id="xsqg_1"]/div[@class="item"]]]></value>
+				</property>
+			</bean>
+		</property>
+		<property name="childXpathList">
+			<list>
+				<bean class="com.hg.crawler.xpath.Xpath">
+					<property name="xpathString">
+						<value><![CDATA[p/span[@class="proprice"]]]></value>
+					</property>
+					<property name="postProcessing">
+						<list>
+							<bean class="com.hg.crawler.xpath.ElementText"></bean>
+							<bean class="com.hg.crawler.xpath.ElementReplace">
+								<property name="regex">
+									<value><![CDATA[￥]]></value>
+								</property>
+								<property name="replacement" value="" />
+							</bean>
+						</list>
+					</property>
+				</bean>
+				<bean class="com.hg.crawler.xpath.Xpath">
+					<property name="xpathString">
+						<value><![CDATA[div[@class="discountimg"]/a/@href]]></value>
+					</property>
+					<property name="postProcessing">
+						<list>
+							<bean class="com.hg.crawler.xpath.ElementLink"></bean>
+						</list>
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+</beans>

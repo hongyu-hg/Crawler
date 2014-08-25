@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:crawler.properties"></property>
+	</bean>
+	<bean id="taskCenter" class="com.hg.crawler.levels.TaskCenter">
+		<property name="threadSize" value="1" />
+		<property name="useNewFile" value="true" />
+		<property name="testing" value="true"></property>
+		<property name="testingSize" value="2"></property>
+		<property name="imgFolder" value="${work.folder}/caomei/img/"></property>
+		<property name="taskList">
+			<list>
+				<ref bean="level_1" />
+				<ref bean="level_2" />
+				<ref bean="level_3" />
+				<ref bean="level_4" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="level_1" class="com.hg.crawler.levels.LinkFetcherPool">
+		<property name="inputFilePath" value="${work.folder}/caomei/level_0.txt" />
+		<property name="outputFilePath" value="${work.folder}/caomei/level_1.txt" />
+		<property name="columnTitle" value="CategoryIndexPage" />
+		<property name="newClumnNames" value="CategoryName\tCategoryFirstPageLink" />
+		<property name="matchREGEXP">
+			<value><![CDATA[^.*$]]></value>
+		</property>
+		<property name="xpath">
+			<bean class="com.hg.crawler.xpath.Xpath">
+				<property name="xpathString">
+					<value><![CDATA[//*[@id="topMenuContainer"]//a]]></value>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+
+	<bean id="level_2" class="com.hg.crawler.levels.LinkFetcherPool">
+		<property name="inputFilePath" value="${work.folder}/caomei/level_1.txt" />
+		<property name="outputFilePath" value="${work.folder}/caomei/level_2.txt" />
+		<property name="columnTitle" value="CategoryIndexPage" />
+		<property name="newClumnNames" value="BrandkName\tBrandPageLink" />
+		<property name="matchREGEXP">
+			<value><![CDATA[^.*$]]></value>
+		</property>
+		<property name="xpath">
+			<bean class="com.hg.crawler.xpath.Xpath">
+				<property name="xpathString">
+					<value><![CDATA[//*[@class="div_Margin15b"]//a]]></value>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="level_3" class="com.hg.crawler.levels.CommonFetcherPool">
+		<property name="inputFilePath" value="${work.folder}/caomei/level_2.txt" />
+		<property name="outputFilePath" value="${work.folder}/caomei/level_3.txt" />
+		<property name="columnTitle" value="BrandPageLink" />
+		<property name="newClumnNames" value="ProductPrice\tProductUrl" />
+		<property name="pageEncoding" value="GBK" />
+		<property name="parentXpath">
+			<bean class="com.hg.crawler.xpath.Xpath">
+				<property name="xpathString">
+					<value><![CDATA[//div[@class="tblRow"]]]></value>
+				</property>
+			</bean>
+		</property>
+		<property name="childXpathList">
+			<list>
+				<bean class="com.hg.crawler.xpath.Xpath">
+					<property name="xpathString">
+						<value><![CDATA[div[@class="col4 vam"]]]></value>
+					</property>
+					<property name="postProcessing">
+						<list>
+							<bean class="com.hg.crawler.xpath.ElementText"></bean>
+							<bean class="com.hg.crawler.xpath.ElementReplace">
+								<property name="regex">
+									<value><![CDATA[￥]]></value>
+								</property>
+								<property name="replacement" value="" />
+							</bean>
+						</list>
+					</property>
+				</bean>
+				<bean class="com.hg.crawler.xpath.Xpath">
+					<property name="xpathString">
+						<value><![CDATA[div[@class="col2 vam"]/div/a/@href]]></value>
+					</property>
+					<property name="postProcessing">
+						<list>
+							<bean class="com.hg.crawler.xpath.ElementLink"></bean>
+						</list>
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="level_4" class="com.hg.crawler.levels.CommonFetcherPool">
+		<property name="inputFilePath" value="${work.folder}/caomei/level_3.txt" />
+		<property name="outputFilePath" value="${work.folder}/caomei/level_4.txt" />
+		<property name="columnTitle" value="ProductUrl" />
+		<property name="newClumnNames" value="Label\tImgLink\tImgPath\tProductDetail\tTitle" />
+		<property name="pageEncoding" value="GBK" />
+		<property name="singleXpathList">
+			<list>
+				<bean class="com.hg.crawler.xpath.Xpath">
+					<property name="necessary" value="true"></property>
+					<property name="xpathString">
+						<value><![CDATA[//h2]]></value>
+					</property>
+					<property name="postProcessing">
+						<list>
+							<bean class="com.hg.crawler.xpath.ElementText"></bean>
+						</list>
+					</property>
+				</bean>
+				<bean class="com.hg.crawler.xpath.Xpath">
+					<property name="xpathString">
+						<value><![CDATA[//center/img/@src]]></value>
+					</property>
+					<property name="postProcessing">
+						<list>
+							<bean class="com.hg.crawler.xpath.ElementImg"></bean>
+						</list>
+					</property>
+				</bean>
+				<bean class="com.hg.crawler.xpath.Xpath">
+					<property name="xpathString">
+						<value><![CDATA[//div[@class="div_content14_2 margintop20"]]]></value>
+					</property>
+					<property name="postProcessing">
+						<list>
+							<bean class="com.hg.crawler.xpath.ElementReplace">
+								<property name="regex">
+									<value><![CDATA[</li>]]></value>
+								</property>
+								<property name="replacement" value="##BR##" />
+							</bean>
+							<bean class="com.hg.crawler.xpath.ElementText"></bean>
+						</list>
+					</property>
+				</bean>
+				<bean class="com.hg.crawler.xpath.Xpath">
+					<property name="xpathString">
+						<value><![CDATA[//*[@class="div_content19"]]]></value>
+					</property>
+					<property name="postProcessing">
+						<list>
+							<bean class="com.hg.crawler.xpath.ElementText"></bean>
+						</list>
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+</beans>
+
+
+
+
+
+
+

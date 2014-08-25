@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:crawler.properties"></property>
+	</bean>
+	<bean id="taskCenter" class="com.hg.crawler.levels.TaskCenter">
+		<property name="threadSize" value="1" />
+		<property name="useNewFile" value="true" />
+		<property name="testing" value="true"></property>
+		<property name="testingSize" value="1"></property>
+		<property name="taskList">
+			<list>
+				<ref bean="level_1" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="level_1" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/proxy/level_0.txt" />
+		<property name="outputFilePath" value="${work.folder}/proxy/level_1.txt" />
+		<property name="columnTitle" value="ProxyListPage" />
+		<property name="newClumnNames" value="Proxy" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcherCommon">
+				<property name="htmlPersistence" value="true" />
+				<property name="parentXpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//table[@class="DataGrid"]//tr]]></value>
+						</property>
+					</bean>
+				</property>
+				<property name="childXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[td[1]]]></value>
+							</property>
+							<property name="postProcessing">
+								<bean class="com.hg.crawler.xpath.ElementText"></bean>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[td[2]]]></value>
+							</property>
+							<property name="postProcessing">
+								<bean class="com.hg.crawler.xpath.ElementText"></bean>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+</beans>
+
+
+
+
+
+
+

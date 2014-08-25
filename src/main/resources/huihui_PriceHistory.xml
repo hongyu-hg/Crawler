@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:crawler.properties"></property>
+	</bean>
+	<bean id="taskCenter" class="com.hg.crawler.levels.TaskCenter">
+		<property name="threadSize" value="50" />
+		<property name="useNewFile" value="true" />
+		<property name="testing" value="true"></property>
+		<property name="testingSize" value="10"></property>
+		<property name="imgFolder" value="${work.folder}/huihui/img/"></property>
+		<property name="taskList">
+			<list>
+				<ref bean="level_6" />
+			</list>
+		</property>
+	</bean>
+	<bean id="level_6" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/huihui/level_5.txt" />
+		<property name="outputFilePath" value="${work.folder}/huihui/level_6.txt" />
+		<property name="batchSize" value="10000"></property>
+		<property name="columnTitle" value="OfferPriceHistoryLink" />
+		<property name="newClumnNames" value="MerchantName\tOfferPriceHistory" />
+		<property name="threadSize" value="200" />
+		<!-- <property name="pageEncoding" value="GBK" /> -->
+		<property name="urlFilterList">
+			<list>
+				<bean class="com.hg.crawler.xpath.ElementExclude">
+					<property name="regExp">
+						<value><![CDATA[360buy]]></value>
+					</property>
+				</bean>
+				<bean class="com.hg.crawler.xpath.ElementExclude">
+					<property name="regExp">
+						<value><![CDATA[vipshop]]></value>
+					</property>
+				</bean>
+				<bean class="com.hg.crawler.xpath.ElementExclude">
+					<property name="regExp">
+						<value><![CDATA[amazon]]></value>
+					</property>
+				</bean>
+			</list>
+		</property>
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcherCommon">
+				<property name="normalCondition" ref="normalCondition"></property>
+				<property name="proxyContainer" ref="proxyContainer"></property>
+				<property name="traceHtmlStringWhenError" value="true" />
+				<property name="singleXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="necessary" value="true" />
+							<property name="xpathString">
+								<value><![CDATA[//store]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementDom"></bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regExp">
+											<value><![CDATA[\s+|\r\n|\n]]></value>
+										</property>
+										<property name="replacement" value=" "></property>
+									</bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regExp">
+											<value><![CDATA[^.*<store.* name="([^"]+)"[^>]+>(.*)$]]></value>
+										</property>
+										<property name="replacement">
+											<value><![CDATA[$1	$2]]></value>
+										</property>
+									</bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regExp">
+											<value><![CDATA[<p\s*key="([^"]+)"\s*value="([^"]+)">(\s*|&lt;)</p>]]></value>
+										</property>
+										<property name="replacement">
+											<value><![CDATA[$1//$2::]]></value>
+										</property>
+									</bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regExp">
+											<value><![CDATA[</store>.*$]]></value>
+										</property>
+										<property name="replacement" value=""></property>
+									</bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regExp">
+											<value><![CDATA[ ]]></value>
+										</property>
+										<property name="replacement" value=""></property>
+									</bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regExp">
+											<value><![CDATA[::$]]></value>
+										</property>
+										<property name="replacement" value=""></property>
+									</bean>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+
+	<bean id="proxyContainer" class="com.hg.crawler.tool.ProxyContainer" init-method="loadProxyFromDisk">
+		<property name="dealLine" value="500"></property>
+		<property name="filePath">
+			<value><![CDATA[/home/warren/jayadata/proxy/proxy.txt.reX]]></value>
+		</property>
+	</bean>
+
+	<bean id="normalCondition" class="com.hg.crawler.NomalCondition">
+		<property name="conditions">
+			<list>
+				<bean class="com.hg.crawler.xpath.ElementInclude">
+					<property name="regExp">
+						<value><![CDATA["status":]]></value>
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+</beans>
+
+
+
+
+
+
+

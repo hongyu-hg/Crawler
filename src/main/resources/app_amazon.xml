@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:crawler.properties"></property>
+	</bean>
+	<bean id="taskCenter" class="com.hg.crawler.levels.TaskCenter">
+		<property name="threadSize" value="15" />
+		<property name="useNewFile" value="true" />
+		<property name="testing" value="false"></property>
+		<property name="testingSize" value="3"></property>
+		<property name="imgFolder" value="${work.folder}/amazon/img/"></property>
+		<property name="taskList">
+			<list>
+				<!-- <ref bean="level_1" /> -->
+				<!-- <ref bean="level_2" /> -->
+				<!-- <ref bean="level_3" /> -->
+				<ref bean="uploadUrl" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="level_1" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/amazon/level_0.txt" />
+		<property name="outputFilePath" value="${work.folder}/amazon/level_1.txt" />
+		<property name="columnTitle" value="CategoryIndexPage" />
+		<property name="newClumnNames" value="CategoryName\tCategoryFirstPageLink" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcherForTitleAndUrl">
+				<property name="regExp">
+					<value><![CDATA[^.*node=.*$]]></value>
+				</property>
+				<property name="xpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//*[@id="siteDirectory"]//a]]></value>
+						</property>
+					</bean>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="level_2" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/amazon/level_1.txt" />
+		<property name="outputFilePath" value="${work.folder}/amazon/level_2.txt" />
+		<property name="columnTitle" value="CategoryFirstPageLink" />
+		<property name="newClumnNames" value="CategoryLink" />
+		<property name="task">
+			<bean class="com.hg.crawler.PaginationForStaticUrl">
+				<property name="xpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//*[@class="m clearfix"]//a]]></value>
+						</property>
+					</bean>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="level_3" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/amazon/level_2.txt" />
+		<property name="outputFilePath" value="${work.folder}/amazon/level_3.txt" />
+		<property name="columnTitle" value="CategoryLink" />
+		<property name="newClumnNames" value="ProductUrl\tProductPrice" />
+		<property name="pageEncoding" value="GBK" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcherCommon">
+				<property name="parentXpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//*[@id="plist"]/ul/li/div[@class="p-img"]/a]]></value>
+						</property>
+					</bean>
+				</property>
+				<property name="childXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[@href]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementLink"></bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[@href]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementLink"></bean>
+									<bean class="com.hg.crawler.xpath.ElementExtract">
+										<property name="regExp">
+											<value><![CDATA[([0-9\.]+)\.html]]></value>
+										</property>
+										<property name="defaultValue" value="0"></property>
+									</bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regExp">
+											<value><![CDATA[^]]></value>
+										</property>
+										<property name="replacement" value="http://jprice.amazon.com/price/np"></property>
+									</bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regExp">
+											<value><![CDATA[$]]></value>
+										</property>
+										<property name="replacement" value="-TRANSACTION-J.html"></property>
+									</bean>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="level_4" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/amazon/amazon_price.txt" />
+		<property name="outputFilePath" value="${work.folder}/amazon/amazon_price_20130112.txt" />
+		<property name="columnTitle" value="OfferLink" />
+		<property name="newClumnNames" value="ProductPrice\tSellOut" />
+		<property name="pageEncoding" value="UTF-8" />
+		<property name="batchSize" value="10000"></property>
+		<property name="task">
+			<bean class="com.hg.crawler.FetcherForAmazonPrice">
+				<property name="readTimeOut" value="180000"></property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="uploadUrl" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/amazon/amazon_price.txt" />
+		<property name="outputFilePath" value="${work.folder}/amazon/amazon_price_tttt.txt" />
+		<property name="columnTitle" value="OfferLink" />
+		<property name="newClumnNames" value="ReturnMessage" />
+		<property name="pageEncoding" value="UTF-8" />
+		<property name="batchSize" value="10000"></property>
+		<property name="task">
+			<bean class="com.hg.crawler.SubmitUrlForAmazonPrice">
+				<property name="readTimeOut" value="180000"></property>
+			</bean>
+		</property>
+	</bean>
+</beans>
+
+
+
+
+
+
+

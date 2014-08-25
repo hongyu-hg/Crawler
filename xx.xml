@@ -1,0 +1,14 @@
+
+<data start='2012-12-08' end='2013-01-07' max='378.0' min='28.0' width='766' height='400'
+	chartWidth='450' chartHeight='315' chartPadding='5,10' chartMargin='40,50,40,40' chartBGColor='fafafa'
+	labelLeft='10' labelTop='10'>
+	<store name='VJIA' lineColor='f1470b' max='378.0' min='28.0' start='2012-12-08' end='2013-01-07'
+		checked='checked'>
+		<p key='2012-12-08' value='264.0' />
+		<p key='2012-12-11' value='189.0' />
+		<p key='2012-12-19' value='28.0' />
+		<p key='2012-12-24' value='189.0' />
+		<p key='2013-01-05' value='378.0' />
+		<p key='2013-01-07' value='378.0' />
+	</store>
+</data>

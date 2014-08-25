@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:crawler.properties"></property>
+	</bean>
+	<bean id="taskCenter" class="com.hg.crawler.levels.TaskCenter">
+		<property name="threadSize" value="20" />
+		<property name="useNewFile" value="false" />
+		<property name="testing" value="false"></property>
+		<property name="testingSize" value="1"></property>
+		<property name="imgFolder" value="${work.folder}/huihui/img/"></property>
+		<property name="taskList">
+			<list>
+				<ref bean="level_2" />
+				<!-- <ref bean="level_2" /> -->
+				<!-- <ref bean="level_3" /> -->
+				<!-- <ref bean="level_6" /> -->
+				<!-- <ref bean="priceUpdate" /> -->
+			</list>
+		</property>
+	</bean>
+
+	<bean id="level_1" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/huihui_tejia/level_0.txt" />
+		<property name="outputFilePath" value="${work.folder}/huihui_tejia/level_1.txt" />
+		<property name="columnTitle" value="HomePage" />
+		<property name="newClumnNames" value="L3_CategoryLink\tL3_CategoryName\tL2_CategoryName\tL1_CategoryName" />
+		<property name="batchSize" value="100"></property>
+		<!-- <property name="pageEncoding" value="GBK" /> -->
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcherCommon">
+				<property name="parentXpath">
+					<bean class="com.hg.crawler.xpath.Xpath">
+						<property name="xpathString">
+							<value><![CDATA[//*[@class="cate-item-list"]/a]]></value>
+						</property>
+					</bean>
+				</property>
+				<property name="childXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[@href]]></value>
+							</property>
+							<property name="postProcessing">
+								<bean class="com.hg.crawler.xpath.ElementLink"></bean>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[text()]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[../../h4]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[../../../../../div/h3]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="level_2" class="com.hg.crawler.levels.TaskPoolImpl">
+		<property name="inputFilePath" value="${work.folder}/huihui_tejia/level_1.txt" />
+		<property name="outputFilePath" value="${work.folder}/huihui_tejia/level_2.txt" />
+		<property name="columnTitle" value="L3_CategoryLink" />
+		<property name="newClumnNames" value="HotBrand\tL2_HotMerchant" />
+		<property name="task">
+			<bean class="com.hg.crawler.PageFetcherCommon">
+				<property name="proxyContainer" ref="proxyContainer"></property>
+				<!-- <property name="htmlPersistence" value="true" /> -->
+				<property name="singleXpathList">
+					<list>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="necessary" value="true" />
+							<property name="xpathString">
+								<value><![CDATA[//*[@id="sale_recommend"]/div[2]/div[1]/ul]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regex">
+											<value><![CDATA[</li>]]></value>
+										</property>
+										<property name="replacement" value="O_o"></property>
+									</bean>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regex">
+											<value><![CDATA[O_o$]]></value>
+										</property>
+										<property name="replacement" value=""></property>
+									</bean>
+								</list>
+							</property>
+						</bean>
+						<bean class="com.hg.crawler.xpath.Xpath">
+							<property name="xpathString">
+								<value><![CDATA[//*[@id="sale_recommend"]/div[2]/div[2]/ul]]></value>
+							</property>
+							<property name="postProcessing">
+								<list>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regex">
+											<value><![CDATA[</li>]]></value>
+										</property>
+										<property name="replacement" value="O_o"></property>
+									</bean>
+									<bean class="com.hg.crawler.xpath.ElementText"></bean>
+									<bean class="com.hg.crawler.xpath.ElementReplace">
+										<property name="regex">
+											<value><![CDATA[O_o$]]></value>
+										</property>
+										<property name="replacement" value=""></property>
+									</bean>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+	<bean id="proxyContainer" class="com.hg.crawler.tool.ProxyContainer" init-method="loadProxyFromDisk">
+		<property name="filePath">
+			<value><![CDATA[/home/warren/jayadata/proxy/proxy.txt.reX]]></value>
+		</property>
+	</bean>
+</beans>
+
+
+
+
+
+
+
